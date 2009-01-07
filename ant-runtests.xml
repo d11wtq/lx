@@ -1,0 +1,77 @@
+<project name="Lx" default="test-all">
+  
+  <property name="path" value="." />
+  <property name="path.js" value="${path}/js" />
+  <property name="path.tests" value="${path}/tests" />
+  <property name="path.tests.util" value="${path.tests}/utils" />
+  <property name="path.tests.ecmaunit" value="${path.tests.util}/ecmaunit" />
+  <property name="path.tests.unit" value="${path.tests}/unit/js" />
+  
+  <path id="path.tests.jars">
+    <fileset dir="${path.tests.util}/jars">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <target name="test-all">
+    <java classpathref="path.tests.jars"
+        classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
+      <arg value="-w" />
+      <arg value="-f" />
+      <arg value="${path.tests.ecmaunit}/ecmaunit.js" />
+      <arg value="-f" />
+      <arg value="${path.js}/lx_analyzer.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxTestSuite.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxAddTokenTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxAddStateTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxLexTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxActionsTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxMoreTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxLessTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxUnputTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxInputTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxBeginTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxPushAndPopStateTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxTopStateTest.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/RunTests.js" />
+    </java>
+  </target>
+  
+  <target name="test">
+    <fail message="You must specify -Dtestcase=SomeTest">
+      <condition>
+        <not>
+          <isset property="testcase" />
+        </not>
+      </condition>
+    </fail>
+    <java classpathref="path.tests.jars"
+        classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
+      <arg value="-w" />
+      <arg value="-f" />
+      <arg value="${path.tests.ecmaunit}/ecmaunit.js" />
+      <arg value="-f" />
+      <arg value="${path.js}/lx_analyzer.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/LxTestSuite.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/${testcase}.js" />
+      <arg value="-f" />
+      <arg value="${path.tests.unit}/RunTests.js" />
+    </java>
+  </target>
+
+</project>

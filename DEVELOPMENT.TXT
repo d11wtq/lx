@@ -1,0 +1,37 @@
+Notes for the developer, not for you ;)
+---------------------------------------
+
+Inclusive States need implementing...
+
+addInclusiveState("ST"); //Processed in order of appearance along with unspecified states
+addExclusiveState("ST"); //Ordering doesn't matter since it's self-contained
+
+When implementing, remember...
+
+<INITIAL> is NOT the same as unspecified.
+
+------------------------------------------
+
+Misfits...
+
+In lex, accessing TopState() when there's nothing on the stack produces a segfault - Lx should throw Exception.
+In lex, invoking PopState() when there's nothin on the stack produces a stack underflow error - Lx should throw Exception.
+In lex, specifying a non-existent state for a rule causes an error - Lx should throw Exception.
+
+Reject() needs implementing...
+
+REJECT causes the action to exit immediately (like an Exception) and use the next best rule.
+
+Terminate() needs implementing...
+
+Terminate() causes the action to exit immediately (like an Exception) and terminates the analyzer.
+
+All states "*" can't be done with Lx syntax...
+
+What about <*> ? // Maybe Lx.addRule(/./, Lx.$ALL);
+
+Restart() needs implementing...
+
+What about Restart(newInput)? //Resets the scanner, but does not reset the start condition to INITIAL
+
+And what about running an action which matches EOF?

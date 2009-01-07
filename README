@@ -1,0 +1,92 @@
+Lx is a lex implementation in ECMAScript (including JavaScript)
+---------------------------------------------------------------
+
+Lx was developed as a dependency for another project which needs
+to deal with source code and grammar rules.
+
+Lx by itself implements just about the same features as Lex/Flex,
+though the naming is consistently different and the routine uses
+an object-oriented approach.
+
+Lx is able to recognize the lower level structures in programming
+source codes of most languages.  It uses basic string matching
+and regular expressions to scan its input, performing user-
+specified actions as it matches each structure, usually referred
+to as a "terminal symbol" or "token".
+
+Reading the Flex info page will almost certainly help you
+understand the API which Lx uses.
+
+A companion library is in development by the same author which
+provides the parsing abilities of Yacc, recognising higher
+level structures (nonterminal symbols) and interpreting the input
+from Lx as it scans using a LALR(1) routine (scanning with a
+lookahead symbol).
+
+IMPORTANT: Lx is pre-1.0, it has NOT been optimized in true TDD
+           fashion, but it will be optimized once the missing
+           features* have been implemented.
+
+
+Testing
+-------
+
+You may wish to run the unit tests provided before you get started.
+
+The unit tests for Lx are written in the ECMAUnit framework and can
+be run via an Ant script (if you have a Java Runtime installed,
+along with the Ant software).
+
+  ant -f ant-runtests.xml test-all
+
+Alternatively they can be run inside your web browser by opening the
+HTML file tests/unit/AllTests.html.
+
+
+Naming Differences from Flex/Lex
+--------------------------------
+
+Though Lx follows the same API as Flex, it does not use exactly the
+same names.  Rather than being prefixed "yy", all properties and
+routines are members of a global object called Lx. Moreso, with the
+exception of lex() and wrap(), all routines and are named with
+CamelCase, including an uppercase first letter.  Token names and state
+names are traditionally written all in UPPERCASE.
+
+  Equivalents:
+  -----------
+  
+  FILE *yyin              String Lx.In
+  FILE *yyout             String Lx.Out
+  char *yytext            String Lx.Text
+  int yylineno            Integer Lx.LineNo
+  int yyleng              Integer Lx.Leng
+  int yylval              Object Lx.Lval
+  int *START              Integer Lx.START
+  int INITIAL             Integer Lx.INITIAL
+  
+  void ECHO               void Lx.Echo()
+  void yymore()           void Lx.More()
+  void yyless(n)          void Lx.Less(n)
+  void unput(c)           void Lx.Unput(c)
+  char input()            String Lx.Input()
+  void yy_push_state(s)   void Lx.PushState(s)
+  void yy_pop_state()     void Lx.PopState()
+  int yy_top_state()      Integer Lx.TopState()
+  void BEGIN cond         void Lx.Begin(s)
+  void REJECT             void Lx.Reject()
+  void terminate()        void Lx.Terminate()
+
+  int yylex()             Integer Lx.lex()
+  int yywrap()            Boolean Lx.wrap()
+  
+The global object Lx always points to the currently scanning analyzer.
+
+* Missing Features (Regardless of the above list):
+--------------------------------------------------
+
+ - Lx.Reject()
+ - Lx.Restart()
+ - Lx.Terminate()
+ - Inclusive states
+ - Line number tracking (may never be added - easily achieved manually)
