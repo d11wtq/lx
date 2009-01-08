@@ -438,17 +438,14 @@ var LxAnalyzer = function LxAnalyzer() {
   var _scanByRegExp = function _scanByRegExp(re) {
     var match = '';
     var matches;
-    if ((matches = re.exec(self.In.substring(0, _minInputSize)))
+    
+    //FSA optimization check with re.test()
+    if (re.test(self.In.substring(0, _minInputSize))
+      && (matches = re.exec(self.In))
       && matches.index == 0) {
       match = matches[0];
-      
-      //FSA optimization check:
-      //If it looks like there's more of this token, try without the limit
-      if (match.length == _minInputSize) {
-        matches = re.exec(self.In);
-        match = matches[0];
-      }
     }
+    
     return match;
   };
   

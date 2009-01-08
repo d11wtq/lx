@@ -69,11 +69,14 @@ var jsLang = new LxAnalyzer();
 Lx.rule = Lx.addRule;
 Lx.state = Lx.addExclusiveState;
 
+var regexAllowed = true;
+
 //Add states for strings and comments
 Lx.state("S_STRING");
 Lx.state("S_LITERAL");
 Lx.state("S_DOC");
 Lx.state("S_COMMENT");
+Lx.state("S_REGEX_LITERAL");
 
 //Copy Whitespace Verbatim
 Lx.rule(/\s\s*/, Lx.INITIAL).action = function() {
@@ -90,24 +93,67 @@ Lx.rule(/[\$a-zA-Z_][\$0-9a-zA-Z_]*/, Lx.INITIAL).action = function() {
     Lx.Text = colorize(Lx.Text, "#ff5588");
   }
   Lx.Echo();
+  regexAllowed = false;
 };
 
 //Anything that looks like a number
 Lx.rule(/(?:0x)?\d+(?:\.(?:0x)?\d+)?/, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#7777ff");
   Lx.Echo();
+  regexAllowed = false;
 };
 
 //Operators
 Lx.rule(/[\+\-=\/&\^~%\?\*!\|:<>]/, Lx.INITIAL).action = function() {
+  //Hack proof of concept for regex literal detection
+  if (Lx.Text == '/' && regexAllowed) {
+    /*Lx.Unput('/');
+    var matches = /\/(?!\*)(\\?[^\/\n\\]|\\\/|\\\\)+\//.exec(Lx.In);
+    if (matches) {
+      Lx.Text = '';
+      for (var i = 0; i < matches[0].length; ++i) {
+        Lx.Text += Lx.Input();
+      }
+      
+      Lx.Text = colorize(Lx.Text, "#66ff88");
+      Lx.Echo();
+      
+      regexAllowed = false;
+      
+      return;
+    } else {
+      Lx.Text = Lx.Input();
+    }*/
+    Lx.Text = colorize(Lx.Text, "#66ff88");
+    Lx.Echo();
+    Lx.PushState(Lx.S_REGEX_LITERAL);
+    
+    regexAllowed = false;
+    
+    return;
+  }
+    
   Lx.Text = colorize(Lx.Text, "#dddd44");
   Lx.Echo();
+  regexAllowed = true;
+};
+
+Lx.rule(/(?:\\?[^\/\n\\]|\\\/|\\\\)+/, Lx.S_REGEX_LITERAL).action = function() {
+  Lx.Text = colorize(Lx.Text, "#66ff88");
+  Lx.Echo();
+};
+
+Lx.rule('/', Lx.S_REGEX_LITERAL).action = function() {
+  Lx.Text = colorize(Lx.Text, "#66ff88");
+  Lx.Echo();
+  Lx.PopState();
 };
 
 //Begin Double String rule
 Lx.rule('"', Lx.INITIAL).action = function() {
   Lx.PushState(Lx.S_STRING);
   Lx.More();
+  regexAllowed = false;
 };
 
 Lx.rule('"', Lx.S_STRING).action = function() {
@@ -125,6 +171,7 @@ Lx.rule(/(?:\\?[^"\n\\]|\\\\|\\")+/, Lx.S_STRING).action = function() {
 Lx.rule('\'', Lx.INITIAL).action = function() {
   Lx.PushState(Lx.S_LITERAL);
   Lx.More();
+  regexAllowed = false;
 };
 
 Lx.rule('\'', Lx.S_LITERAL).action = function() {
@@ -158,12 +205,6 @@ Lx.rule("*/", Lx.S_COMMENT).action = function() {
 //C style comments
 Lx.rule(/\/\/.+/, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#aaaaaa");
-  Lx.Echo();
-};
-
-//Regex literal (can be done with a new state, though this seemed more optimal)
-Lx.rule(/\/(?!\*)(\\?[^\/\n\\]|\\\/|\\\\)+\//, Lx.INITIAL).action = function() {
-  Lx.Text = colorize(Lx.Text, "#66ff88");
   Lx.Echo();
 };
 
