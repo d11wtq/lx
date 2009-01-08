@@ -113,12 +113,33 @@ var LxAnalyzer = function LxAnalyzer() {
   var _stateStack = [];
   
   /** @private */
+  var _minInputSize = 32;
+  
+  /** @private */
   var self = this;
   
   /** For consistency between actions using Lx and token specification */
   Lx = self;
   
   // -- Public methods
+  
+  /**
+   * FSA optimization setting for minimum input fragment size.
+   * 
+   * The scanner will first test if a rule matches inside the first s chars
+   * of the input source.
+   * 
+   * Tokens are permitted to be longer (for example long strings), but the
+   * first s chars in the token then must fit the pattern.
+   * 
+   * Default value 32 should work fine, raising it will increase the chance of
+   * matching very long tokens at the expense of speed.
+   * 
+   * @param {Integer} s
+   */
+  this.setMinInputSize = function setMinInputSize(s) {
+    _minInputSize = s;
+  };
   
   /**
    * Defines a new exclusive state, accessible as a property of the currently
@@ -202,7 +223,7 @@ var LxAnalyzer = function LxAnalyzer() {
     }
     
     var rule = {
-      pattern : pattern,
+      pattern : _optimizePattern(pattern),
       action : LxEmptyAction
     };
     
@@ -395,12 +416,38 @@ var LxAnalyzer = function LxAnalyzer() {
   // -- Private methods
   
   /** @private */
+  var _optimizePattern = function _optimizePattern(re) {
+    if (typeof re.valueOf() == "string") {
+      return re.valueOf();
+    }
+    
+    var regexString = re.toString();
+    var pattern = regexString.substring(
+      regexString.indexOf('/') + 1,
+      regexString.lastIndexOf('/')
+    );
+    var flags = regexString.substring(regexString.lastIndexOf('/') + 1);
+    if (!flags) {
+      return new RegExp(pattern.replace(/^(?!\^)(.*)/, "^(?:$1)"));
+    } else {
+      return new RegExp(pattern.replace(/^(?!\^)(.*)/, "^(?:$1)"), flags);
+    }
+  };
+  
+  /** @private */
   var _scanByRegExp = function _scanByRegExp(re) {
     var match = '';
     var matches;
-    if ((matches = re.exec(self.In))
+    if ((matches = re.exec(self.In.substring(0, _minInputSize)))
       && matches.index == 0) {
       match = matches[0];
+      
+      //FSA optimization check:
+      //If it looks like there's more of this token, try without the limit
+      if (match.length == _minInputSize) {
+        matches = re.exec(self.In);
+        match = matches[0];
+      }
     }
     return match;
   };
@@ -425,7 +472,7 @@ var LxAnalyzer = function LxAnalyzer() {
     //Inner function with access to local variables
     var scan = function scan(rule) {
       var match = '';
-      if (rule.pattern instanceof RegExp) {
+      if (typeof rule.pattern != "string") {
         match = _scanByRegExp(rule.pattern);
       } else /* optimize */ if (bestLength < rule.pattern.length) {
         match = _scanByString(rule.pattern);

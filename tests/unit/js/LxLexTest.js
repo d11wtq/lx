@@ -15,14 +15,14 @@ function LxLexTest() {
   };
   
   this.testTokensAreSkippedIfActionIsLeftBlank = function () {
-    lex.addRule(/^\s+/);
+    lex.addRule(/\s+/);
     lex.In = "function foo(x) { return 42; }";
     while (0 != lex.lex()) ;
     this.assertEquals("functionfoo(x){return42;}", lex.Out);
   };
   
   this.testScanningStopsToReturnFromTheDefaultAction = function () {
-    lex.addRule(/^\s+/);
+    lex.addRule(/\s+/);
     lex.In = "a b c";
     lex.lex();
     this.assertEquals("a", lex.Out);
@@ -43,7 +43,7 @@ function LxLexTest() {
       Lx.Echo();
       return Lx.T_WORD2;
     };
-    lex.addRule(/^\s+/);
+    lex.addRule(/\s+/);
     lex.In = "word1 word2 word1";
     lex.lex();
     this.assertEquals("word1", lex.Out);

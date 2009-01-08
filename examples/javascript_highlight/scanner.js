@@ -66,19 +66,22 @@ var sources = document.getElementsByClassName("js");
 //Create an analyzer (creates global Lx)
 var jsLang = new LxAnalyzer();
 
+Lx.rule = Lx.addRule;
+Lx.state = Lx.addExclusiveState;
+
 //Add states for strings and comments
-Lx.addExclusiveState("S_STRING");
-Lx.addExclusiveState("S_LITERAL");
-Lx.addExclusiveState("S_DOC");
-Lx.addExclusiveState("S_COMMENT");
+Lx.state("S_STRING");
+Lx.state("S_LITERAL");
+Lx.state("S_DOC");
+Lx.state("S_COMMENT");
 
 //Copy Whitespace Verbatim
-Lx.addRule(/^\s+/, Lx.INITIAL).action = function() {
+Lx.rule(/\s\s*/, Lx.INITIAL).action = function() {
   Lx.Echo();
 };
 
 //Anything that looks like a "term"
-Lx.addRule(/^[\$a-zA-Z_][\$0-9a-zA-Z_]+/, Lx.INITIAL).action = function() {
+Lx.rule(/[\$a-zA-Z_][\$0-9a-zA-Z_]*/, Lx.INITIAL).action = function() {
   if (isKeyword(Lx.Text)) {
     Lx.Text = colorize(Lx.Text, "#ffaa44");
   } else if (isControl(Lx.Text)) {
@@ -90,62 +93,62 @@ Lx.addRule(/^[\$a-zA-Z_][\$0-9a-zA-Z_]+/, Lx.INITIAL).action = function() {
 };
 
 //Anything that looks like a number
-Lx.addRule(/^(0x)?\d+(\.\d+)?/, Lx.INITIAL).action = function() {
+Lx.rule(/(?:0x)?\d+(?:\.(?:0x)?\d+)?/, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#7777ff");
   Lx.Echo();
 };
 
 //Operators
-Lx.addRule(/^[\+\-=\/&\^~%\?\*!\|:<>]/, Lx.INITIAL).action = function() {
+Lx.rule(/[\+\-=\/&\^~%\?\*!\|:<>]/, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#dddd44");
   Lx.Echo();
 };
 
 //Begin Double String rule
-Lx.addRule('"', Lx.INITIAL).action = function() {
+Lx.rule('"', Lx.INITIAL).action = function() {
   Lx.PushState(Lx.S_STRING);
   Lx.More();
 };
 
-Lx.addRule('"', Lx.S_STRING).action = function() {
+Lx.rule('"', Lx.S_STRING).action = function() {
   Lx.Text = colorize(Lx.Text, "#22dd22");
   Lx.Echo();
   Lx.PopState();
 };
 
-Lx.addRule(/^(\\?[^"\n\\]|\\\\|\\")+/, Lx.S_STRING).action = function() {
+Lx.rule(/(?:\\?[^"\n\\]|\\\\|\\")+/, Lx.S_STRING).action = function() {
   Lx.More();
 };
 //End Double String rule
 
 //Begin Single String rule
-Lx.addRule('\'', Lx.INITIAL).action = function() {
+Lx.rule('\'', Lx.INITIAL).action = function() {
   Lx.PushState(Lx.S_LITERAL);
   Lx.More();
 };
 
-Lx.addRule('\'', Lx.S_LITERAL).action = function() {
+Lx.rule('\'', Lx.S_LITERAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#22dd22");
   Lx.Echo();
   Lx.PopState();
 };
 
-Lx.addRule(/^(\\?[^'\n\\]|\\\\|\\')+/, Lx.S_LITERAL).action = function() {
+Lx.rule(/(?:\\?[^'\n\\]|\\\\|\\')+/, Lx.S_LITERAL).action = function() {
   Lx.More();
 };
 //End Single String rule
 
 //Begin Multi-line comments
-Lx.addRule("/*", Lx.INITIAL).action = function() {
+Lx.rule("/*", Lx.INITIAL).action = function() {
   Lx.PushState(Lx.S_COMMENT);
   Lx.More();
 };
 
-Lx.addRule(/^([^\*]|(\*(?!\/)))+/, Lx.S_COMMENT).action = function() {
+Lx.rule(/(?:[^\*]|(?:\*(?!\/)))+/, Lx.S_COMMENT).action = function() {
   Lx.More();
 };
 
-Lx.addRule("*/", Lx.S_COMMENT).action = function() {
+Lx.rule("*/", Lx.S_COMMENT).action = function() {
   Lx.Text = colorize(Lx.Text, "#aaaaaa");
   Lx.Echo();
   Lx.PopState();
@@ -153,28 +156,26 @@ Lx.addRule("*/", Lx.S_COMMENT).action = function() {
 //End multi-line comments
 
 //C style comments
-Lx.addRule(/^\/\/.+/, Lx.INITIAL).action = function() {
+Lx.rule(/\/\/.+/, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#aaaaaa");
   Lx.Echo();
 };
 
 //Regex literal (can be done with a new state, though this seemed more optimal)
-Lx.addRule(/^\/(?!\*)(\\?[^\/\n\\]|\\\/|\\\\)+\//, Lx.INITIAL).action = function() {
+Lx.rule(/\/(?!\*)(\\?[^\/\n\\]|\\\/|\\\\)+\//, Lx.INITIAL).action = function() {
   Lx.Text = colorize(Lx.Text, "#66ff88");
   Lx.Echo();
 };
 
 //Scan the source then write the output to the element
 for (var i = 0; i < sources.length; ++i) {
-  var sDate = new Date();
-  var start = sDate.getTime();
+  var start = new Date();
   var source = sources[i];
   Lx.Reset();
-  Lx.In = source.textContent;
+  Lx.In = new String(source.textContent);
   while (0 != Lx.lex()) ;
   source.innerHTML = Lx.Out;
-  var eDate = new Date();
-  var end = eDate.getTime();
-  var dur = end - start;
+  var end = new Date();
+  var dur = end.getTime() - start.getTime();
   alert("Parsed Block [" + (i + 1) + "] in " + dur + "ms");
 }
