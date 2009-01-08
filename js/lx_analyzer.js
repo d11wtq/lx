@@ -468,14 +468,14 @@ var LxAnalyzer = function LxAnalyzer() {
     
     //Inner function with access to local variables
     var scan = function scan(rule) {
-      var match = '';
-      if (typeof rule.pattern != "string") {
+      var match;
+      if (typeof rule.pattern != "string") { //TODO: Cheaper test than typeof?
         match = _scanByRegExp(rule.pattern);
       } else /* optimize */ if (bestLength < rule.pattern.length) {
         match = _scanByString(rule.pattern);
       }
       
-      if (match.length > bestLength) {
+      if (match && match.length > bestLength) {
         bestLength = match.length;
         bestRule = rule;
         bestMatch = match;
