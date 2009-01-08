@@ -35,3 +35,16 @@ Restart() needs implementing...
 What about Restart(newInput)? //Resets the scanner, but does not reset the start condition to INITIAL
 
 And what about running an action which matches EOF?
+
+--------------------------------------------
+
+Optimizations...
+
+Some extensive research needs to be done into the fastest way to:
+
+  * Read a string from left-to-right, traversing along it char-by-char (i.e. modify vs. slice)
+  * Append output to Lx.Out
+  * Determine which rule is the best match (i.e. don't run rules that *can't* match, optimize regex?, indexOf() vs substr() matching)
+  * Is (typeof varName == "undefined") slower than a straight boolean type-juggle?
+  * Is any unnecessary work being done on each _lexScan()?  (i.e. are objects being created/modified where not needed?)
+
