@@ -135,6 +135,25 @@ var LxAnalyzer = function LxAnalyzer() {
    * Default value 32 should work fine, raising it will increase the chance of
    * matching very long tokens at the expense of speed.
    * 
+   * If you try to match an entire string with a rule of say,
+   * /"[^"]*"/ then matching will fail for long strings (and rightly so). A
+   * more optimized (and flexible) way to match such strings is to use state
+   * switching.
+   * 
+   * Lx.rule('"', Lx.INITIAL).performs(function() {
+   *   // Opening "
+   *   Lx.PushState(Lx.IN_STRING);
+   * });
+   * 
+   * Lx.rule(/[^"]+/, Lx.IN_STRING).performs(function() {
+   *   // String content
+   * });
+   * 
+   * Lx.rule('"', Lx.IN_STRING).performs(function() {
+   *   // Closing "
+   *   Lx.PopState();
+   * });
+   * 
    * @param {Integer} s
    */
   this.setMinInputSize = function setMinInputSize(s) {
@@ -230,7 +249,7 @@ var LxAnalyzer = function LxAnalyzer() {
     var ruleContainer;
     for (var i = 0, len = states.length; i < len; ++i) {
       if (typeof _rules[states[i]] == "undefined") {
-        throw new Exception("State ID " + states[i] + " does not exist");
+        throw "State ID " + states[i] + " does not exist";
       }
       ruleContainer = _rules[states[i]];
       ruleContainer[ruleContainer.length] = rule;
@@ -295,8 +314,8 @@ var LxAnalyzer = function LxAnalyzer() {
    */
   this.Less = function Less(n) {
     if (n > self.Text.length) {
-      throw new Exception("Cannot put back " + n + " characters from a " +
-        self.Text.length + " token");
+      throw "Cannot put back " + n + " characters from a " +
+        self.Text.length + " token";
     }
     self.In = self.Text.substr(n) + self.In;
     self.Leng = n;
@@ -346,6 +365,9 @@ var LxAnalyzer = function LxAnalyzer() {
    * @see {@link #addState}
    */
   this.Begin = function Begin(state) {
+    if (!(state in _rules)) {
+      throw "There is no state ID [" + state + "]";
+    }
     self.START = state;
   };
   
@@ -390,7 +412,7 @@ var LxAnalyzer = function LxAnalyzer() {
    */
   this.TopState = function TopState() {
     if (_stateStack.length == 0) {
-      throw new Exception("Cannot read state stack since it is empty");
+      throw "Cannot read state stack since it is empty";
     }
     return (typeof _stateStack[_stateStack.length - 1] != "undefined")
       ? _stateStack[_stateStack.length - 1]
@@ -399,12 +421,13 @@ var LxAnalyzer = function LxAnalyzer() {
   };
   
   /**
-   * Reset all input, output and the state stack.
+   * Restart with new input, resetting the scanner (except for the START state).
+   * 
+   * @param {String} input
    */
-  this.Reset = function Reset() {
-    self.In = '';
+  this.Restart = function Restart(input) {
+    self.In = input;
     self.Out = '';
-    self.START = 0;
     self.Text = '';
     self.Leng = 0;
     self.LineNo = 1;

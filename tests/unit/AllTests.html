@@ -1,0 +1,29 @@
+<html>
+<head>
+  <title>Lx Test Suite</title>
+</head>
+<body>
+  <h1>Lx Unit Tests</h1>
+
+  <div id="testresults"></div>
+
+  <script type="text/javascript" src="../utils/ecmaunit/ecmaunit.js"></script>
+  <script type="text/javascript" src="../../js/lx_analyzer.js"></script>
+  <script type="text/javascript"><!--
+  var LxTestSuite = new TestSuite(new HTMLReporter(document.getElementById("testresults")));
+  --></script>
+  <script type="text/javascript" src="js/LxAddTokenTest.js"></script>
+  <script type="text/javascript" src="js/LxAddStateTest.js"></script>
+  <script type="text/javascript" src="js/LxLexTest.js"></script>
+  <script type="text/javascript" src="js/LxActionsTest.js"></script>
+  <script type="text/javascript" src="js/LxMoreTest.js"></script>
+  <script type="text/javascript" src="js/LxLessTest.js"></script>
+  <script type="text/javascript" src="js/LxUnputTest.js"></script>
+  <script type="text/javascript" src="js/LxInputTest.js"></script>
+  <script type="text/javascript" src="js/LxBeginTest.js"></script>
+  <script type="text/javascript" src="js/LxPushAndPopStateTest.js"></script>
+  <script type="text/javascript" src="js/LxTopStateTest.js"></script>
+  <script type="text/javascript" src="js/RunTests.js"></script>
+
+</body>
+</html>
