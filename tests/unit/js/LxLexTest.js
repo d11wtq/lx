@@ -53,6 +53,18 @@ function LxLexTest() {
     this.assertEquals("word1word2word1", lex.Out);
   };
   
+  this.testWrapReturnsFalseWhenInputRemains = function() {
+    lex.In = "abcd";
+    lex.lex();
+    this.assertFalse(lex.wrap());
+  };
+  
+  this.testWrapReturnsTrueWhenAllInputIsRead = function() {
+    lex.In = "abcd";
+    while (0 != lex.lex()) ;
+    this.assertTrue(lex.wrap());
+  };
+  
 };
 
 LxLexTest.prototype = new TestCase();

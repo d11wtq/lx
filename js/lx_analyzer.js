@@ -289,7 +289,7 @@ var LxAnalyzer = function LxAnalyzer() {
    * @type Boolean
    */
   this.wrap = function wrap() {
-    return self.In.length > 0;
+    return self.In.length <= 0;
   };
   
   // -- Scanning routines
